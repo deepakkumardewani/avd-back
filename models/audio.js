@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const mongoosePaginate = require('mongoose-paginate');
 mongoose.Promise = require('bluebird')
 const Schema = mongoose.Schema
 
@@ -29,6 +30,8 @@ const Audio = new Schema({
   timestamps: true,
   collection: 'audio'
 })
+
+Audio.plugin(mongoosePaginate);
 
 const AudioModel = mongoose.model('audio', Audio)
 

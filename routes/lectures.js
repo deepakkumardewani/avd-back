@@ -58,8 +58,16 @@ router.get('/audio/daily', async (req, res) => {
 
 router.get('/audio', async (req, res) => {
   try {
-    const audios = await Audio.find().sort({updatedAt: -1})
+    // const audios = await Audio.find().sort({updatedAt: -1})
+    // const audios = await Audio.find().sort({updatedAt: -1})
+    const audios = await Audio.paginate({}, { page: 2, limit: 10, updatedAt: -1})
+    console.log(audios);
+
     return res.status(200).json(audios)
+  //   Audio.sort({updatedAt: -1}).paginate({}, { page: 2, limit: 10 })
+  // .then(audios => {
+  //   return res.status(200).json(audios)
+  // })
   } catch (error) {
     return res.status(500).send(error)
   }
