@@ -36,7 +36,7 @@ router.post('/audio/daily', (req, res) => {
       const audio = new Audio({
         title,
         subTitle,
-        url: location
+        url: data.location
       })
       audio.save().then(() => {
         res.status(200).send('Successfully uploaded files!')
@@ -49,7 +49,7 @@ router.post('/audio/daily', (req, res) => {
 
 router.get('/audio/daily', async (req, res) => {
   try {
-    const audios = await Audio.findOne().sort({updatedAt: -1})
+    const audios = await Audio.findOne().sort({title: -1})
     return res.status(200).json(audios)
   } catch (error) {
     return res.status(500).send(error)
@@ -58,27 +58,30 @@ router.get('/audio/daily', async (req, res) => {
 
 router.get('/audio', async (req, res) => {
   try {
-    const audios = await Audio.find().sort({updatedAt: -1})
+    const audios = await Audio.find().sort({title: -1})
     return res.status(200).json(audios)
   } catch (error) {
     return res.status(500).send(error)
   }
 })
 
-router.get('/video', async (req, res) => {
+router.post('/video', async (req, res) => {
   try {
-    const videoList = await axios.get(`${youtubeUrl}playlistItems?part=snippet,contentDetails&maxResults=20&playlistId=${PLAYLIST_ID}&key=${YOUTUBE_KEY}`)
-
+    const { token } = req.body
+    const videoList = await axios.get(`${youtubeUrl}playlistItems?part=snippet,contentDetails&maxResults=20&playlistId=${PLAYLIST_ID}&key=${YOUTUBE_KEY}&pageToken=${token}`)
+    let videos
     const videoIdArray = videoList.data.items.map(video => {
       return video.snippet.resourceId.videoId
     })
 
     try {
-      let videos = await axios.get(`${youtubeUrl}videos?part=snippet,contentDetails,statistics&key=${YOUTUBE_KEY}&id=${videoIdArray}`)
+      let videosData = await axios.get(`${youtubeUrl}videos?part=snippet,contentDetails,statistics&key=${YOUTUBE_KEY}&id=${videoIdArray}`)
 
-      videos = videos.data.items.map(video => {
+      videos = videosData.data.items.map(video => {
         return {
+          id: video.id,
           title: video.snippet.title,
+          description: video.snippet.description,
           thumbnail: video.snippet.thumbnails.high.url,
           videoUrl: `https://www.youtube.com/embed/${video.id}`,
           viewCount: video.statistics.viewCount,
@@ -86,7 +89,11 @@ router.get('/video', async (req, res) => {
         }
       })
 
-      return res.status(200).json(videos)
+      return res.status(200).json({
+        token: videoList.data.nextPageToken,
+        videos,
+        totalResults: videoList.data.pageInfo.totalResults
+      })
     } catch (error) {
       console.error(error)
     }
