@@ -26,7 +26,7 @@ router.post('/dailyDarshan', (req, res) => {
 
 router.get('/dailyDarshan', async (req, res) => {
   try {
-    const dailyDarshan = await Darshan.find()
+    const dailyDarshan = await Darshan.findOne()
     return res.status(200).json(dailyDarshan)
   } catch (error) {
     return res.status(500).send(error)
