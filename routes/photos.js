@@ -14,13 +14,20 @@ router.post('/dailyDarshan', (req, res) => {
       console.error('error')
       res.send('Error')
     }
-
-    Darshan.findOneAndUpdate({ type: 'daily-darshan' }, { $push: { imageUrls: data.location } }, {upsert: true, new: true}, (err, doc) => {
-      if (err) {
-        console.log('Something wrong when updating data!')
-      }
-      res.status(200).send('Successfully uploaded files!')
-    })
+    const date = new Date()
+    const format = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
+    Darshan.findOneAndUpdate(
+      { date: format },
+      {
+        $push: { imageUrls: data.location },
+        $set: { date: format }
+      },
+      {upsert: true, new: true}, (err, doc) => {
+        if (err) {
+          console.log('Something wrong when updating data!')
+        }
+        res.status(200).send('Successfully uploaded files!')
+      })
   })
 })
 
