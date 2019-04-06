@@ -10,9 +10,9 @@ const Darshan = new Schema({
   },
   fileName: String,
   'date': {
-    'type': Date,
+    'type': String,
     'required': [true, 'can\'t be blank'],
-    default: Date.now
+    default: ''
   },
   imageUrls: [String]
 }, {
