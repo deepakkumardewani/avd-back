@@ -8,17 +8,26 @@ const config = require('../config')
 const upload = require('../helpers/upload')
 
 const AUDIO_URL = 'https://avd-bapuji.sfo2.digitaloceanspaces.com/audios/'
-const { youtubeUrl, YOUTUBE_KEY, PLAYLIST_ID } = config
+const {
+  youtubeUrl,
+  YOUTUBE_KEY,
+  PLAYLIST_ID
+} = config
 /*
   LECTURES
   */
 router.post('/audio/daily', (req, res) => {
   upload(req, res, 'audios', function (error, data) {
     if (error) {
-      res.status(409).send('Error Uploading', error)
+      return res.status(409).json({
+        msg: 'Error Uploading',
+        error
+      })
     }
 
-    const { originalname, location } = data
+    const {
+      originalname
+    } = data
 
     // e.g. originalname: '2019.01.01 File name.mp3'
     const title = originalname.substr(0, originalname.indexOf(' ')) // set date as title
@@ -33,14 +42,37 @@ router.post('/audio/daily', (req, res) => {
     }
 
     try {
-      const audio = new Audio({
-        title,
-        subTitle,
-        url: data.location
+      Audio.findOneAndUpdate({
+        title
+      }, {
+        $set: {
+          title,
+          subTitle,
+          url: data.location
+        }
+      }, {
+        upsert: true,
+        new: true
+      }, (err, doc) => {
+        if (error) {
+          return res.status(409).json({
+            msg: 'Something wrong when updating data!',
+            err
+          })
+        }
+        return res.status(200).json({
+          msg: 'Successfully uploaded files!',
+          data: doc
+        })
       })
-      audio.save().then(() => {
-        res.status(200).send('Successfully uploaded files!')
-      })
+      // const audio = new Audio({
+      //   title,
+      //   subTitle,
+      //   url: data.location
+      // })
+      // audio.save().then(() => {
+      //   res.status(200).send('Successfully uploaded files!')
+      // })
     } catch (error) {
       return res.status(500).send(error)
     }
@@ -49,26 +81,49 @@ router.post('/audio/daily', (req, res) => {
 
 router.get('/audio/daily', async (req, res) => {
   try {
-    const audios = await Audio.findOne().sort({title: -1})
+    const audios = await Audio.findOne().sort({
+      title: -1
+    })
     return res.status(200).json(audios)
   } catch (error) {
-    return res.status(500).send(error)
+    return res.status(409).json({
+      msg: 'Something wrong!',
+      error
+    })
+    // return res.status(500).send(error)
   }
 })
 
 router.get('/audio', async (req, res) => {
   try {
-    // const audios = await Audio.find().sort({updatedAt: -1})
-    const audios = await Audio.paginate({}, { page: 2, limit: 10, updatedAt: -1 })
+    let {
+      limit,
+      page
+    } = req.query
+    limit = parseInt(limit)
+    page = parseInt(page)
+    const audios = await Audio.paginate({}, {
+      page,
+      limit,
+      sort: {
+        updatedAt: -1
+      }
+    })
+
     return res.status(200).json(audios)
   } catch (error) {
-    return res.status(500).send(error)
+    return res.status(500).json({
+      msg: 'Something wrong!',
+      error
+    })
   }
 })
 
 router.post('/video', async (req, res) => {
   try {
-    const { token } = req.body
+    const {
+      token
+    } = req.body
     const videoList = await axios.get(`${youtubeUrl}playlistItems?part=snippet,contentDetails&maxResults=20&playlistId=${PLAYLIST_ID}&key=${YOUTUBE_KEY}&pageToken=${token}`)
     let videos
     const videoIdArray = videoList.data.items.map(video => {
@@ -96,10 +151,16 @@ router.post('/video', async (req, res) => {
         totalResults: videoList.data.pageInfo.totalResults
       })
     } catch (error) {
-      console.error(error)
+      return res.status(500).json({
+        msg: 'Something wrong!',
+        error
+      })
     }
   } catch (error) {
-    console.error(error)
+    return res.status(500).json({
+      msg: 'Something wrong!',
+      error
+    })
   }
 })
 
