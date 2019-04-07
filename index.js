@@ -6,7 +6,7 @@ const mongoose = require('mongoose')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 
-var whitelist = ['http://localhost:4200', 'https://anandvrindavan.com']
+var whitelist = ['http://localhost:4200', 'http://localhost:8100', 'http://localhost:8200', 'https://anandvrindavan.com']
 var corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1 || !origin) {
