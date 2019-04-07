@@ -15,12 +15,12 @@ router.post('/dailyDarshan', (req, res) => {
       res.send('Error')
     }
     const date = new Date()
-    const format = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
+    const dateFormat = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
     Darshan.findOneAndUpdate(
-      { date: format },
+      { date: dateFormat },
       {
         $push: { imageUrls: data.location },
-        $set: { date: format }
+        $set: { date: dateFormat }
       },
       {upsert: true, new: true}, (err, doc) => {
         if (err) {
@@ -33,7 +33,9 @@ router.post('/dailyDarshan', (req, res) => {
 
 router.get('/dailyDarshan', async (req, res) => {
   try {
-    const dailyDarshan = await Darshan.findOne()
+    const date = new Date()
+    const dateFormat = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
+    const dailyDarshan = await Darshan.findOne({ date: dateFormat }) // get darshan for today date only
     return res.status(200).json(dailyDarshan)
   } catch (error) {
     return res.status(500).send(error)
