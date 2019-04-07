@@ -54,7 +54,7 @@ router.post('/audio/daily', (req, res) => {
         upsert: true,
         new: true
       }, (err, doc) => {
-        if (error) {
+        if (err) {
           return res.status(409).json({
             msg: 'Something wrong when updating data!',
             err
