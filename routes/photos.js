@@ -52,61 +52,56 @@ router.get('/dailyDarshan', async (req, res) => {
 })
 
 router.delete('/dailyDarshan', async (req, res) => {
-  const spacesEndpoint = new AWS.Endpoint(`${config.spacesEndpoint}/events`)
+  let count = 0
+  const date = new Date()
+  let dailyDarshan
+    const dateFormat = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
+    try {
+      dailyDarshan = await Darshan.findOne({
+        date: dateFormat
+      }) // get darshan for today date only
+    } catch (error) {
+      console.error(error);
 
-  const params = {  Bucket: 'avd-bapuji', Key: 'bapuji.jpg' };
+    }
+
+
+
+  const spacesEndpoint = new AWS.Endpoint(`${config.spacesEndpoint}/events`)
 
   const s3 = new AWS.S3({
     endpoint: spacesEndpoint,
     accessKeyId: '5D43XLAGUY6OKJB7NWNM',
     secretAccessKey: 'k5jpTC6bCzK7XjWXl52S9iY7cATvKD+BTkgKWHHStfg'
   })
-  s3.deleteObject(params, function (err, data) {
-    if (err) console.log(err, err.stack); // error
-    else console.log(data); // deleted
-  });
-  // var deleteItems = []
-  // const images = await Darshan.find({})
 
-  // // console.log(images)
+  dailyDarshan.imageUrls.forEach(url => {
+    const key = url.substr(url.lastIndexOf('/') + 1)
+    const params = {
+      Bucket: 'avd-bapuji',
+      Key: key
+    };
+    s3.deleteObject(params, function (err, data) {
+      if (err) { console.log(err, err.stack);}// error
+      else {
+        count ++
+        console.log(data);
+      } // deleted
+    });
+  })
 
-  // // res.status(200).json({message: 'delete success'})
-  // images.forEach(function (item) {
-  //   deleteItems.push({Key: `/daily-darshan/${item.fileName}`})
-  // })
+  if (count === dailyDarshan.imageUrls.length) {
 
-  // var params = {
-  //   Bucket: 'avd-bapuji',
-  //   Delete: {
-  //     Objects: deleteItems,
-  //     Quiet: false
-  //   }
-  // }
-
-  // const spacesEndpoint = new AWS.Endpoint(`sfo2.digitaloceanspaces.com/daily-darshan`)
-  // const s3 = new AWS.S3({
-  //   endpoint: spacesEndpoint,
-  //   accessKeyId: '5D43XLAGUY6OKJB7NWNM',
-  //   secretAccessKey: 'k5jpTC6bCzK7XjWXl52S9iY7cATvKD+BTkgKWHHStfg'
-  // })
-  // s3.deleteObjects(params, function (err, data) {
-  //   if (err) console.log(err)
-  //   else console.log('Successfully deleted myBucket/myKey')
-  // })
-
-  // res.json({
-  //   message: 'images deleted',
-  //   items: deleteItems
-  // })
-
-  // Darshan.deleteOne({}, function (err) {
+  // Darshan.deleteOne({date: dateFormat}, function (err) {
   //   if (err) {
   //     return res.err('err deleting', err)
   //   }
   //   res.status(200).json({
-  //     message: 'delete success'
+  //     message: 'all images deleted'
   //   })
   // })
+  }
+
 })
 
 /*
