@@ -6,7 +6,7 @@ const mongoose = require('mongoose')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 
-var whitelist = ['http://localhost:4200', 'http://localhost:8100', 'http://localhost:8200', 'https://anandvrindavan.com']
+var whitelist = ['ionic://localhost', 'http://localhost:8080', 'http://localhost:4200', 'http://localhost:8100', 'http://localhost:8200', 'http://192.168.31.249:8100', 'https://anandvrindavan.com']
 var corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1 || !origin) {
@@ -37,7 +37,7 @@ app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, DELETE, GET, PUT')
   res.header(
     'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, albumtitle'
+    'Origin, X-Requested-With, Content-Type, Accept, albumtitle', 'audiotitle'
   )
   res.setHeader('Access-Control-Allow-Credentials', true)
   next()
