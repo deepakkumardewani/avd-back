@@ -17,14 +17,18 @@ const {
   LECTURES
   */
 router.post('/audio/daily', (req, res) => {
-  upload(req, res, 'audios', function (error, data) {
+  let {
+    audiotitle
+  } = req.headers
+
+  const [ date, month, year ] = audiotitle.split('.')
+  upload(req, res, `audios/${year}/${month}`, function (error, data) {
     if (error) {
       return res.status(409).json({
         msg: 'Error Uploading',
         error
       })
     }
-
     const {
       originalname
     } = data
@@ -109,7 +113,6 @@ router.get('/audio', async (req, res) => {
         updatedAt: -1
       }
     })
-
     return res.status(200).json(audios)
   } catch (error) {
     return res.status(500).json({
