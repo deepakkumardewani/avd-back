@@ -7,6 +7,8 @@ const Audio = require('../models/audio')
 const config = require('../config')
 const upload = require('../helpers/upload')
 
+const sendNotification = require('../helpers/notification')
+
 const AUDIO_URL = 'https://avd-bapuji.sfo2.digitaloceanspaces.com/audios/'
 const {
   youtubeUrl,
@@ -57,26 +59,19 @@ router.post('/audio/daily', (req, res) => {
       }, {
         upsert: true,
         new: true
-      }, (err, doc) => {
+      }, async (err, doc) => {
         if (err) {
           return res.status(409).json({
             msg: 'Something wrong when updating data!',
             err
           })
         }
+        await sendNotification('Hare Krishna', `Today's audio satsang is now available`)
         return res.status(200).json({
           msg: 'Successfully uploaded files!',
           data: doc
         })
       })
-      // const audio = new Audio({
-      //   title,
-      //   subTitle,
-      //   url: data.location
-      // })
-      // audio.save().then(() => {
-      //   res.status(200).send('Successfully uploaded files!')
-      // })
     } catch (error) {
       return res.status(500).send(error)
     }

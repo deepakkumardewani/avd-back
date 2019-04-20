@@ -5,6 +5,7 @@ const mongoose = require('mongoose')
 // const routes = require('./routes')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
+const sendNotification = require('./helpers/notification')
 
 var whitelist = ['ionic://localhost', 'http://localhost:8080', 'http://localhost:4200', 'http://localhost:8100', 'http://localhost:8200', 'http://192.168.31.249:8100', 'https://anandvrindavan.com']
 var corsOptions = {
@@ -73,6 +74,10 @@ app.use('/photos', photoRoutes)
 app.use('/lectures', lectureRoutes)
 app.use('/events', eventRoutes)
 app.use('/quotes', quoteRoutes)
+
+app.get('/notification', async function (req, res) {
+  res.json({data: await sendNotification('test', 'test')})
+})
 
 app.get('/healthcheck', function (req, res) {
   res.send(`api service running on ${url}:${port}`)
