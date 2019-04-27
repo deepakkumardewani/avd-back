@@ -99,6 +99,13 @@ router.get('/audio', async (req, res) => {
       limit,
       page
     } = req.query
+
+    if (!limit) {
+      limit = 30
+    }
+    if (!page) {
+      page = 1
+    }
     limit = parseInt(limit)
     page = parseInt(page)
     const audios = await Audio.paginate({}, {
