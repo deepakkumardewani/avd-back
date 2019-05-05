@@ -44,9 +44,8 @@ router.post('/audio/daily', (req, res) => {
     // and saving in the DB
     if (!data.location.startsWith('https://')) {
       const fileName = data.originalname.replace(/ /g, '%20')
-      data.location = `${AUDIO_URL}${fileName}`
+      data.location = `${AUDIO_URL}${year}/${month}/${fileName}`
     }
-
     try {
       Audio.findOneAndUpdate({
         title
@@ -66,7 +65,10 @@ router.post('/audio/daily', (req, res) => {
             err
           })
         }
-        await sendNotification('Hare Krishna', `Today's audio satsang is now available`)
+        const data = {
+          page: '/tabs/tab1'
+        }
+        await sendNotification('Hare Krishna', `Today's audio satsang is now available`, data)
         return res.status(200).json({
           msg: 'Successfully uploaded files!',
           data: doc
