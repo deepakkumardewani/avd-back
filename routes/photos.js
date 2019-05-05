@@ -11,13 +11,14 @@ const Album = require('../models/album')
   DARSHAN
   */
 router.post('/dailyDarshan', (req, res) => {
-  upload(req, res, 'daily-darshan', function (err, data) {
+  const date = new Date()
+  const dateFormat = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
+  upload(req, res, `daily-darshan/${dateFormat}`, function (err, data) {
     if (err) {
       console.error('error')
       res.send('Error')
     }
-    const date = new Date()
-    const dateFormat = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
+
     Darshan.findOneAndUpdate({
       date: dateFormat
     }, {
@@ -35,7 +36,10 @@ router.post('/dailyDarshan', (req, res) => {
         console.error('Something wrong when updating data!', err)
         return res.status(500).send(err)
       }
-      await sendNotification('Hare Krishna', `Daily darshan is now available`)
+      const data = {
+        page: '/tabs/tab2'
+      }
+      await sendNotification('Hare Krishna', `Daily darshan is now available`, data)
       return res.status(200).json({
         msg: 'Successfully uploaded files!',
         data: doc
@@ -46,11 +50,14 @@ router.post('/dailyDarshan', (req, res) => {
 
 router.get('/dailyDarshan', async (req, res) => {
   try {
-    const date = new Date()
-    const dateFormat = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
-    const dailyDarshan = await Darshan.findOne({
-      date: dateFormat
-    }) // get darshan for today date only
+    // const date = new Date()
+    // const dateFormat = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
+    // const dailyDarshan = await Darshan.findOne({
+    //   date: dateFormat
+    // }) // get darshan for today date only
+    const dailyDarshan = await Darshan.findOne({}).sort({
+      date: -1
+    })
     return res.status(200).json(dailyDarshan)
   } catch (error) {
     return res.status(500).send(error)
