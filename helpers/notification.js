@@ -6,12 +6,12 @@ admin.initializeApp({
   databaseURL: 'https://anand-vrindavan-dham.firebaseio.com'
 })
 
-const sendNotification = async (title, body) => {
+const sendNotification = async (title, body, data) => {
   const payload = {
+    data,
     notification: {
       title,
-      body,
-      icon: 'https://goo.gl/Fz9nrQ'
+      body
     }
   }
 
