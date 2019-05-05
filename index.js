@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const sendNotification = require('./helpers/notification')
 
-var whitelist = ['ionic://localhost', 'http://localhost:8080', 'http://localhost:4200', 'http://localhost:8100', 'http://localhost:8200', 'http://192.168.31.249:8100', 'https://anandvrindavan.com']
+var whitelist = ['http://localhost', 'ionic://localhost', 'http://localhost:8080', 'http://localhost:4200', 'http://localhost:8100', 'http://localhost:8200', 'http://192.168.31.249:8100', 'http://169.254.190.158:8100', 'https://anandvrindavan.com']
 var corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1 || !origin) {
@@ -76,7 +76,8 @@ app.use('/events', eventRoutes)
 app.use('/quotes', quoteRoutes)
 
 app.get('/notification', async function (req, res) {
-  res.json({data: await sendNotification('test', 'test')})
+  const data = { 'page': '/tabs/tab2' }
+  res.json({data: await sendNotification('test', 'test', data)})
 })
 
 app.get('/healthcheck', function (req, res) {
