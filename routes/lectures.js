@@ -12,6 +12,7 @@ const sendNotification = require('../helpers/notification')
 const AUDIO_URL = 'https://avd-bapuji.sfo2.digitaloceanspaces.com/audios/'
 const {
   youtubeUrl,
+  youtubeEmbedUrl,
   YOUTUBE_KEY,
   PLAYLIST_ID
 } = config
@@ -141,14 +142,17 @@ router.post('/video', async (req, res) => {
       let videosData = await axios.get(`${youtubeUrl}videos?part=snippet,contentDetails,statistics&key=${YOUTUBE_KEY}&id=${videoIdArray}`)
 
       videos = videosData.data.items.map(video => {
+        const { id, snippet, statistics, contentDetails } = video
+        const { title, description, thumbnails, publishedAt } = snippet
         return {
-          id: video.id,
-          title: video.snippet.title,
-          description: video.snippet.description,
-          thumbnail: video.snippet.thumbnails.high.url,
-          videoUrl: `https://www.youtube.com/embed/${video.id}`,
-          viewCount: video.statistics.viewCount,
-          duration: video.contentDetails.duration
+          id: id,
+          title: title,
+          description: description,
+          thumbnail: thumbnails.high.url,
+          videoUrl: `${youtubeEmbedUrl}${id}`,
+          viewCount: statistics.viewCount,
+          duration: contentDetails.duration,
+          publishedAt
         }
       })
 
