@@ -3,8 +3,6 @@ const router = express.Router()
 const AWS = require('aws-sdk')
 const upload = require('../helpers/upload')
 const config = require('../config')
-
-const sendNotification = require('../helpers/notification')
 const Darshan = require('../models/darshan')
 const Album = require('../models/album')
 /*
@@ -36,10 +34,6 @@ router.post('/dailyDarshan', (req, res) => {
         console.error('Something wrong when updating data!', err)
         return res.status(500).send(err)
       }
-      const data = {
-        page: '/tabs/tab2'
-      }
-      await sendNotification('Hare Krishna', `Daily darshan is now available`, data)
       return res.status(200).json({
         msg: 'Successfully uploaded files!',
         data: doc
