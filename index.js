@@ -75,9 +75,10 @@ app.use('/lectures', lectureRoutes)
 app.use('/events', eventRoutes)
 app.use('/quotes', quoteRoutes)
 
-app.get('/notification', async function (req, res) {
-  const data = { 'page': '/tabs/tab2' }
-  res.json({data: await sendNotification('test', 'test', data)})
+app.post('/notification', async function (req, res) {
+  const { title, subtitle, page } = req.body
+  const data = { page }
+  res.json({data: await sendNotification(title, subtitle, data)})
 })
 
 app.get('/healthcheck', function (req, res) {
