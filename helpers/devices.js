@@ -8,10 +8,13 @@ const sendDevices = async () => {
 
   // get the user's tokens and send notifications
   const devices = await devicesRef.get()
-
+  let users = []
+  devices.forEach(result => {
+    users.push(result.data())
+  })
   return {
-      devices,
-      users: devices.length
+    numberOfUsers: users.length,
+    users,
   }
 }
 
