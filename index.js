@@ -8,6 +8,14 @@ const bodyParser = require('body-parser')
 const sendNotification = require('./helpers/notification')
 const sendDevices = require('./helpers/devices')
 
+const admin = require('firebase-admin')
+const serviceAccount = require('/secrets/avd/anand-vrindavan-dham-firebase-adminsdk.json')
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: 'https://anand-vrindavan-dham.firebaseio.com'
+})
+
 
 var whitelist = ['http://localhost', 'ionic://localhost', 'http://localhost:8080', 'http://localhost:4200', 'http://localhost:8100', 'http://localhost:8200', 'http://192.168.31.249:8100', 'http://169.254.190.158:8100', 'https://anandvrindavan.com']
 var corsOptions = {
