@@ -6,6 +6,8 @@ const mongoose = require('mongoose')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const sendNotification = require('./helpers/notification')
+const sendDevices = require('./helpers/devices')
+
 
 var whitelist = ['http://localhost', 'ionic://localhost', 'http://localhost:8080', 'http://localhost:4200', 'http://localhost:8100', 'http://localhost:8200', 'http://192.168.31.249:8100', 'http://169.254.190.158:8100', 'https://anandvrindavan.com']
 var corsOptions = {
@@ -79,6 +81,10 @@ app.post('/notification', async function (req, res) {
   const { title, subtitle, page } = req.body
   const data = { page }
   res.json({data: await sendNotification(title, subtitle, data)})
+})
+
+app.get('/devices', async function (req, res) {
+  res.json({data: await sendDevices()})
 })
 
 app.get('/healthcheck', function (req, res) {
