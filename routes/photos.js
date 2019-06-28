@@ -53,7 +53,7 @@ router.get('/dailyDarshan', async (req, res) => {
     //   date: dateFormat
     // }) // get darshan for today date only
     const dailyDarshan = await Darshan.findOne({}).sort({
-      date: -1
+      createdAt: -1
     })
     return res.status(200).json(dailyDarshan)
   } catch (error) {

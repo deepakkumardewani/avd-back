@@ -1,10 +1,4 @@
 const admin = require('firebase-admin')
-const serviceAccount = require('/secrets/avd/anand-vrindavan-dham-firebase-adminsdk.json')
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://anand-vrindavan-dham.firebaseio.com'
-})
 
 const sendNotification = async (title, body, data) => {
   const payload = {
