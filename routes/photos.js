@@ -10,8 +10,11 @@ const Album = require('../models/album')
   */
 router.post('/dailyDarshan', (req, res) => {
   const date = new Date()
+  const year = date.getFullYear()
+  const month = ((date.getMonth() + 1) < 10 ? '0' : '') + (date.getMonth() + 1)
+  const day = (date.getDate() < 10 ? '0' : '') + date.getDate()
   const dateFormat = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
-  upload(req, res, `daily-darshan/${dateFormat}`, function (err, data) {
+  upload(req, res, `daily-darshan/${year}/${month}/${day}`, function (err, data) {
     if (err) {
       console.error('error')
       res.send('Error')
