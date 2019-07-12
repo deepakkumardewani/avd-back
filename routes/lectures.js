@@ -25,7 +25,7 @@ router.post('/audio/daily', (req, res) => {
   } = req.headers
 
   const [ date, month, year ] = audiotitle.split('.')
-  upload(req, res, `audios/${year}/${month}`, async function (error, data) {
+  upload(req, res, `audios/${year}/${month}`, async function (error, result) {
     if (error) {
       return res.status(409).json({
         msg: 'Error Uploading',
@@ -34,7 +34,7 @@ router.post('/audio/daily', (req, res) => {
     }
     const {
       originalname
-    } = data
+    } = result
 
     // e.g. originalname: '2019.01.01 File name.mp3'
     const title = originalname.substr(0, originalname.indexOf(' ')) // set date as title
@@ -43,17 +43,22 @@ router.post('/audio/daily', (req, res) => {
     // DO returns relative path of location of the uploaded file if the file is large
     // Hence, creating a new complete URL for the uploaded file
     // and saving in the DB
-    if (!data.location.startsWith('https://')) {
-      const fileName = data.originalname.replace(/ /g, '%20')
-      data.location = `${AUDIO_URL}${year}/${month}/${fileName}`
+    if (!result.location.startsWith('https://')) {
+      const fileName = result.originalname.replace(/ /g, '%20')
+      result.location = `${AUDIO_URL}${year}/${month}/${fileName}`
     }
     try {
       const audio = new Audio({
         title,
         subTitle,
-        url: data.location
+        url: result.location
       })
       const doc = await audio.save()
+
+      const data = {
+        page: '/tabs/tab1'
+      }
+      await sendNotification('Hare Krishna', `Today's audio satsang is now available`, data)
       return res.status(200).json({
         msg: 'Successfully uploaded files!',
         data: doc
