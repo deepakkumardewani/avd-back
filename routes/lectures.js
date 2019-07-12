@@ -25,7 +25,7 @@ router.post('/audio/daily', (req, res) => {
   } = req.headers
 
   const [ date, month, year ] = audiotitle.split('.')
-  upload(req, res, `audios/${year}/${month}`, function (error, data) {
+  upload(req, res, `audios/${year}/${month}`, async function (error, data) {
     if (error) {
       return res.status(409).json({
         msg: 'Error Uploading',
@@ -48,35 +48,21 @@ router.post('/audio/daily', (req, res) => {
       data.location = `${AUDIO_URL}${year}/${month}/${fileName}`
     }
     try {
-      Audio.findOneAndUpdate({
-        title
-      }, {
-        $set: {
-          title,
-          subTitle,
-          url: data.location
-        }
-      }, {
-        upsert: true,
-        new: true
-      }, async (err, doc) => {
-        if (err) {
-          return res.status(409).json({
-            msg: 'Something wrong when updating data!',
-            err
-          })
-        }
-        const data = {
-          page: '/tabs/tab1'
-        }
-        await sendNotification('Hare Krishna', `Today's audio satsang is now available`, data)
-        return res.status(200).json({
-          msg: 'Successfully uploaded files!',
-          data: doc
-        })
+      const audio = new Audio({
+        title,
+        subTitle,
+        url: data.location
+      })
+      const doc = await audio.save()
+      return res.status(200).json({
+        msg: 'Successfully uploaded files!',
+        data: doc
       })
     } catch (error) {
-      return res.status(500).send(error)
+      return res.status(500).json({
+        msg: 'Something went wrong!',
+        error
+      })
     }
   })
 })
