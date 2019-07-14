@@ -51,7 +51,8 @@ router.post('/audio/daily', (req, res) => {
       const audio = new Audio({
         title,
         subTitle,
-        url: result.location
+        url: result.location,
+        fileTitle: `${title} ${subTitle}`.replace(/-|\s/g, '_')
       })
       const doc = await audio.save()
 

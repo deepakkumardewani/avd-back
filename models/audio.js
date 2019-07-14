@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const mongoosePaginate = require('mongoose-paginate');
+const mongoosePaginate = require('mongoose-paginate')
 mongoose.Promise = require('bluebird')
 const Schema = mongoose.Schema
 
@@ -24,6 +24,11 @@ const Audio = new Schema({
     'type': String,
     'required': [true, 'can\'t be blank'],
     default: ''
+  },
+  'fileTitle': {
+    'type': String,
+    'required': [true, 'can\'t be blank'],
+    default: ''
   }
 }, {
   versionKey: false,
@@ -31,7 +36,7 @@ const Audio = new Schema({
   collection: 'audio'
 })
 
-Audio.plugin(mongoosePaginate);
+Audio.plugin(mongoosePaginate)
 
 const AudioModel = mongoose.model('audio', Audio)
 
