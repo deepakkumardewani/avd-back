@@ -61,7 +61,7 @@ router.post('/audio/daily', (req, res) => {
       }
       await sendNotification('Hare Krishna', `Today's audio satsang is now available`, data)
       return res.status(200).json({
-        msg: 'Successfully uploaded files!',
+        msg: 'Successfully uploaded file!',
         data: doc
       })
     } catch (error) {
