@@ -14,7 +14,11 @@ const Darshan = new Schema({
     'required': [true, 'can\'t be blank'],
     default: ''
   },
-  imageUrls: [String]
+  // imageUrls: [String],
+  imageUrls: [{
+    url: String,
+    placeholder: String
+  }]
 }, {
   versionKey: false,
   timestamps: true,
