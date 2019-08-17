@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const AWS = require('aws-sdk')
 const upload = require('../helpers/upload')
+const compress = require('../helpers/compress')
 const config = require('../config')
 const Darshan = require('../models/darshan')
 const Album = require('../models/album')
@@ -14,17 +15,22 @@ router.post('/dailyDarshan', (req, res) => {
   const month = ((date.getMonth() + 1) < 10 ? '0' : '') + (date.getMonth() + 1)
   const day = (date.getDate() < 10 ? '0' : '') + date.getDate()
   const dateFormat = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
-  upload(req, res, `daily-darshan/${year}/${month}/${day}`, function (err, data) {
+  upload(req, res, `daily-darshan/${year}/${month}/${day}`, async function (err, data) {
     if (err) {
       console.error('error')
       res.send('Error')
     }
 
+    const compressedImage = await compress(data.location, `${year}/${month}/${day}`)
+
     Darshan.findOneAndUpdate({
       date: dateFormat
     }, {
       $push: {
-        imageUrls: data.location
+        imageUrls: {
+          url: data.location,
+          placeholder: compressedImage.location
+        }
       },
       $set: {
         date: dateFormat
@@ -38,7 +44,7 @@ router.post('/dailyDarshan', (req, res) => {
         return res.status(500).send(err)
       }
       return res.status(200).json({
-        msg: 'Successfully uploaded files!',
+        msg: 'Successfully uploaded file!',
         data: doc
       })
     })
