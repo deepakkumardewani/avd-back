@@ -3,7 +3,7 @@ const router = express.Router()
 const AWS = require('aws-sdk')
 const upload = require('../helpers/upload')
 const compress = require('../helpers/compress')
-const config = require('../config')
+const config = require('/secrets/avd/config')
 const Darshan = require('../models/darshan')
 const Album = require('../models/album')
 /*

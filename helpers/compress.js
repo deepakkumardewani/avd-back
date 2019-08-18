@@ -1,5 +1,5 @@
 const tinify = require('tinify')
-const config = require('./../config')
+const config = require('/secrets/avd/config')
 tinify.key = config.tinifyKey
 
 const compress = async (url, date) => {
