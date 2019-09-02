@@ -119,6 +119,17 @@ router.get('/audio', async (req, res) => {
   }
 })
 
+router.delete('/audio', async (req, res) => {
+  Audio.remove({ _id: req.query.id }, async (err, doc) => {
+    if (err) {
+      return res.status(500).json({
+        msg: 'Something wrong!',
+        err
+      })
+    }
+    return res.status(200).json(doc)
+  })
+})
 router.post('/video', async (req, res) => {
   try {
     const {
