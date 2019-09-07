@@ -113,7 +113,6 @@ app.get('/healthcheck', async function (req, res) {
       'responseDesc': `${os.hostname()} DB is not accessible`
     })
   }
-  // res.send(`api service running on ${url}:${port}`)
 })
 
 /* catch 404 and forward to error handler */
