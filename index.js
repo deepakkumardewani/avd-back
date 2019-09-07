@@ -4,7 +4,6 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const os = require('os')
 
-// const routes = require('./routes')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const sendNotification = require('./helpers/notification')
