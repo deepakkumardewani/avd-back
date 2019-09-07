@@ -74,7 +74,7 @@ db.on('error', function () {
   throw new Error('unable to connect to database at ' + mongoURI)
 })
 db.once('open', function () {
-  console.log("we're now connected!")
+  console.log("yay! we're now connected!")
 })
 
 app.use('/photos', photoRoutes)
