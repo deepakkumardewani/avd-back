@@ -64,7 +64,6 @@ app.use(
 app.use(cookieParser())
 
 app.use(express.static('public'))
-// connect to mongo when app initializes
 var mongoURI = 'mongodb://localhost:27017/local'
 mongoose.connect(mongoURI, {
   useMongoClient: true
@@ -75,7 +74,6 @@ db.on('error', function () {
   throw new Error('unable to connect to database at ' + mongoURI)
 })
 db.once('open', function () {
-  // we're connected!
   console.log("we're now connected!")
 })
 
