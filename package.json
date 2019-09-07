@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "Deepak Kumar Dewani",
   "license": "ISC",
@@ -25,5 +25,9 @@
     "multer-s3": "^2.9.0",
     "nodemon": "^1.18.9",
     "tinify": "^1.6.0-beta.2"
+  },
+  "devDependencies": {
+    "jest": "^24.9.0",
+    "os": "^0.1.1"
   }
 }

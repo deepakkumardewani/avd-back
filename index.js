@@ -2,11 +2,14 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const mongoose = require('mongoose')
+const os = require('os')
+
 // const routes = require('./routes')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const sendNotification = require('./helpers/notification')
 const sendDevices = require('./helpers/devices')
+const Darshan = require('./models/darshan')
 
 const admin = require('firebase-admin')
 const serviceAccount = require('/secrets/avd/anand-vrindavan-dham-firebase-adminsdk.json')
@@ -15,7 +18,6 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: 'https://anand-vrindavan-dham.firebaseio.com'
 })
-
 
 var whitelist = ['http://localhost', 'ionic://localhost', 'http://localhost:8080', 'http://localhost:4200', 'http://localhost:8100', 'http://localhost:8200', 'http://192.168.31.249:8100', 'http://169.254.190.158:8100', 'https://anandvrindavan.com']
 var corsOptions = {
@@ -95,8 +97,23 @@ app.get('/devices', async function (req, res) {
   res.json({data: await sendDevices()})
 })
 
-app.get('/healthcheck', function (req, res) {
-  res.send(`api service running on ${url}:${port}`)
+app.get('/healthcheck', async function (req, res) {
+  try {
+    const dailyDarshan = await Darshan.findOne({}).sort({
+      createdAt: -1
+    })
+    return res.status(200).json({
+      'responseCode': 0,
+      'responseDesc': `${os.hostname()} is running`,
+      result: dailyDarshan
+    })
+  } catch (error) {
+    return res.status(500).send({
+      'responseCode': 1,
+      'responseDesc': `${os.hostname()} DB is not accessible`
+    })
+  }
+  // res.send(`api service running on ${url}:${port}`)
 })
 
 /* catch 404 and forward to error handler */
