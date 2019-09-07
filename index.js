@@ -56,7 +56,6 @@ app.use(function (req, res, next) {
   next()
 })
 
-// app.use(multer({dest: ''}).single('file'))
 app.use(bodyParser.json())
 app.use(
   bodyParser.urlencoded({
