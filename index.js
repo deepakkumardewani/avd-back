@@ -78,7 +78,7 @@ db.on('error', function () {
 })
 db.once('open', function () {
   // we're connected!
-  console.log("we're connected!")
+  console.log("we're now connected!")
 })
 
 app.use('/photos', photoRoutes)
