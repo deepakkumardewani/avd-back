@@ -123,5 +123,5 @@ app.use(function (req, res, next) {
 })
 
 app.listen(port, () => {
-  console.log(`API service running on localhost:${port}`)
+  console.log(`API service running on ${os.hostname()}:${port}`)
 })
