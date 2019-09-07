@@ -81,7 +81,6 @@ db.once('open', function () {
   console.log("we're connected!")
 })
 
-// app.use('/', routes)
 app.use('/photos', photoRoutes)
 app.use('/lectures', lectureRoutes)
 app.use('/events', eventRoutes)
