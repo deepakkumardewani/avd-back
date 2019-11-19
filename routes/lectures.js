@@ -4,6 +4,7 @@ const axios = require('axios')
 
 const Audio = require('../models/audio')
 
+// const config = require('/Users/Shared/Relocated\ Items/Security/secrets/avd/config')
 const config = require('/secrets/avd/config')
 const upload = require('../helpers/upload')
 
@@ -59,7 +60,8 @@ router.post('/audio/daily', (req, res) => {
       const data = {
         page: '/tabs/tab1'
       }
-      await sendNotification('Hare Krishna', `Today's audio satsang is now available`, data)
+      // await sendNotification('Hare Krishna', `Today's audio satsang is now available`, data)
+      sendNotification('Hare Krishna', `Today's audio satsang is now available`, data)
       return res.status(200).json({
         msg: 'Successfully uploaded file!',
         data: doc
