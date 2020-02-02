@@ -60,8 +60,13 @@ router.post('/audio/daily', (req, res) => {
       const data = {
         page: '/tabs/tab1'
       }
-      // await sendNotification('Hare Krishna', `Today's audio satsang is now available`, data)
-      sendNotification('Hare Krishna', `Today's audio satsang is now available`, data)
+
+      let notifMsg = `Today's audio satsang is now available`
+      if (subTitle.substring(0, 2) === 'BM') {
+        notifMsg = `Today's Brhama Muhrat audio satsang is now available`
+      }
+      sendNotification('Hare Krishna', notifMsg, data)
+      // sendNotification('Hare Krishna', `Today's audio satsang is now available`, data)
       return res.status(200).json({
         msg: 'Successfully uploaded file!',
         data: doc
