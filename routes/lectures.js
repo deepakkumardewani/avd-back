@@ -5,7 +5,7 @@ const axios = require('axios')
 const Audio = require('../models/audio')
 
 // const config = require('/Users/Shared/Relocated\ Items/Security/secrets/avd/config')
-const config = require('/secrets/avd/config')
+// const config = require('/secrets/avd/config')
 const upload = require('../helpers/upload')
 
 const sendNotification = require('../helpers/notification')
@@ -16,7 +16,7 @@ const {
   youtubeEmbedUrl,
   YOUTUBE_KEY,
   PLAYLIST_ID
-} = config
+} = global.config
 /*
   LECTURES
   */

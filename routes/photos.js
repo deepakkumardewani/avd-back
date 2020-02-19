@@ -3,7 +3,7 @@ const router = express.Router()
 const AWS = require('aws-sdk')
 const upload = require('../helpers/upload')
 const compress = require('../helpers/compress')
-const config = require('/secrets/avd/config')
+// const config = require('/secrets/avd/config')
 const Darshan = require('../models/darshan')
 const Album = require('../models/album')
 /*
@@ -80,7 +80,7 @@ router.delete('/dailyDarshan', async (req, res) => {
     console.error(error)
   }
 
-  const spacesEndpoint = new AWS.Endpoint(`${config.spacesEndpoint}/daily-darshan`)
+  const spacesEndpoint = new AWS.Endpoint(`${global.config.spacesEndpoint}/daily-darshan`)
 
   const s3 = new AWS.S3({
     endpoint: spacesEndpoint,

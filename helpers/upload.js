@@ -1,15 +1,15 @@
 const AWS = require('aws-sdk')
 const multer = require('multer')
 const multerS3 = require('multer-s3')
-const config = require('/secrets/avd/config')
+// const config = require('/secrets/avd/config')
 
 function uploadFile (req, res, folderPath, cb) {
   // Configure client for use with Spaces
-  const spacesEndpoint = new AWS.Endpoint(`${config.spacesEndpoint}/${folderPath}`)
+  const spacesEndpoint = new AWS.Endpoint(`${global.config.spacesEndpoint}/${folderPath}`)
   const s3 = new AWS.S3({
     endpoint: spacesEndpoint,
-    accessKeyId: config.spaces.accessKey,
-    secretAccessKey: config.spaces.secretAccess
+    accessKeyId: global.config.spaces.accessKey,
+    secretAccessKey: global.config.spaces.secretAccess
   })
 
   const upload = multer({

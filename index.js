@@ -1,3 +1,7 @@
+if (!process.env.APP_ENV) {
+	process.env.APP_ENV = "development"
+}
+
 const express = require('express')
 const app = express()
 const cors = require('cors')
@@ -12,14 +16,19 @@ const sendDevices = require('./helpers/devices')
 const Darshan = require('./models/darshan')
 
 const admin = require('firebase-admin')
-const serviceAccount = require('/secrets/avd/anand-vrindavan-dham-firebase-adminsdk.json')
+const serviceAccount = process.env.APP_ENV === "development" ? require("./secrets/firebase-adminsdk.json") : require('/secrets/avd/anand-vrindavan-dham-firebase-adminsdk.json')
+
+const config =
+  process.env.APP_ENV === "development" ? require("./secrets/config") : require("/secrets/avd/config");
+
+global.config = config;
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: 'https://anand-vrindavan-dham.firebaseio.com'
 })
 
-var whitelist = ['http://localhost', 'ionic://localhost', 'http://localhost:8080', 'http://localhost:4200', 'http://localhost:8100', 'http://localhost:8200', 'http://192.168.31.249:8100', 'http://169.254.190.158:8100', 'https://anandvrindavan.com']
+var whitelist = ['http://localhost', 'ionic://localhost', 'http://localhost:8080', 'http://localhost:4200', 'http://localhost:8100', 'http://localhost:8200', 'http://192.168.31.249:8100', 'http://169.254.190.158:8100', 'https://anandvrindavan.com', 'http://localhost:3000']
 var corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1 || !origin) {
@@ -44,7 +53,7 @@ const port = process.env.PORT || 3050
 const url = process.env.IP || '0.0.0.0'
 
 app.use(function (req, res, next) {
-  // res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200')
+  // res.setHeader('Access-Control-Allow-Origin', '*')
   // res.setHeader('Access-Control-Allow-Origin', 'https://anandvrindvan.com')
   // res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
   res.setHeader('Access-Control-Allow-Methods', 'POST, DELETE, GET, PUT')
@@ -95,6 +104,10 @@ app.post('/notification', async function (req, res) {
 
 app.get('/devices', async function (req, res) {
   res.json({data: await sendDevices()})
+})
+
+app.get('/testing', async function (req, res) {
+  return res.status(200).json({data: 'working'})
 })
 
 app.get('/healthcheck', async function (req, res) {

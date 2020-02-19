@@ -1,5 +1,6 @@
 dump.rdb
 package-lock.json
+secrets/
 
 # Logs
 logs
