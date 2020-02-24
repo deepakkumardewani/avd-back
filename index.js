@@ -106,8 +106,18 @@ app.get('/devices', async function (req, res) {
   res.json({data: await sendDevices()})
 })
 
-app.get('/testing', async function (req, res) {
-  return res.status(200).json({data: 'working'})
+
+app.get('/ekadashi-list', async function (req, res) {
+
+})
+
+app.post('/dwadashi', async function (req, res) {
+  const { start, end } = req.body
+  const title = 'Hare Krishna'
+  // const subtitle = `Dwadashi timings are 7:04 AM to 11:05 AM.`
+  const subtitle = `Dwadashi timings are from ${start} to ${end}.`
+  // res.json({data: await sendNotification(title, subtitle)})
+  return res.status(200).json({ subtitle })
 })
 
 app.get('/healthcheck', async function (req, res) {
