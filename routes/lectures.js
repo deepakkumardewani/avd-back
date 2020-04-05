@@ -80,11 +80,13 @@ router.post('/audio/daily', (req, res) => {
   })
 })
 
-router.get('/audio/daily', async (req, res) => {
+router.get('/audio/daily', async (_, res) => {
   try {
-    const audios = await Audio.findOne().sort({
-      title: -1
-    })
+    // const audios = await Audio.findOne().sort({
+    //   title: -1
+    // })
+    const audios = await Audio.find().sort({title: -1}).limit(1)
+
     return res.status(200).json(audios)
   } catch (error) {
     return res.status(409).json({
