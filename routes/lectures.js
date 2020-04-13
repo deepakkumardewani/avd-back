@@ -85,7 +85,7 @@ router.get('/audio/daily', async (_, res) => {
     // const audios = await Audio.findOne().sort({
     //   title: -1
     // })
-    const audio = await Audio.find().sort({title: -1}).limit(1)
+    const audio = await Audio.find().sort({createdAt: -1}).limit(1)
     return res.status(200).json(audio[0])
   } catch (error) {
     return res.status(409).json({
