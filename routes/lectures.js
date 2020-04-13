@@ -85,12 +85,11 @@ router.get('/audio/daily', async (_, res) => {
     // const audios = await Audio.findOne().sort({
     //   title: -1
     // })
-    const audios = await Audio.find().sort({title: -1}).limit(1)
-
-    return res.status(200).json(audios)
+    const audio = await Audio.find().sort({title: -1}).limit(1)
+    return res.status(200).json(audio[0])
   } catch (error) {
     return res.status(409).json({
-      msg: 'Something wrong!',
+      msg: 'Something went wrong!',
       error
     })
     // return res.status(500).send(error)
@@ -139,6 +138,50 @@ router.delete('/audio', async (req, res) => {
     return res.status(200).json(doc)
   })
 })
+
+router.get('/video/daily', async (_, res) => {
+  try {
+    const url = `${youtubeUrl}playlistItems?part=snippet,contentDetails&maxResults=1&playlistId=${PLAYLIST_ID}&key=${YOUTUBE_KEY}`
+    const videoList = await axios.get(url)
+    const videoId = videoList.data.items && videoList.data.items[0] && videoList.data.items[0].snippet.resourceId.videoId
+
+    try {
+      let videosData = await axios.get(`${youtubeUrl}videos?part=snippet,contentDetails,statistics&key=${YOUTUBE_KEY}&id=${videoId}`)
+
+      const videos = videosData.data.items.map(video => {
+        const { id, snippet, statistics, contentDetails } = video
+        const { title, description, thumbnails, publishedAt } = snippet
+        return {
+          id: id,
+          title: title,
+          description: description,
+          thumbnail: thumbnails.high.url,
+          videoUrl: `${youtubeEmbedUrl}${id}`,
+          viewCount: statistics.viewCount,
+          duration: contentDetails.duration,
+          publishedAt
+        }
+      })
+
+      const video = videos[0]
+
+      return res.status(200).json({
+        video
+      })
+    } catch (error) {
+      return res.status(500).json({
+        msg: 'Something went wrong!',
+        error
+      })
+    }
+  } catch (error) {
+    return res.status(500).json({
+      msg: 'Something went wrong!',
+      error
+    })
+  }
+})
+
 router.post('/video', async (req, res) => {
   try {
     const {
@@ -160,7 +203,7 @@ router.post('/video', async (req, res) => {
           id: id,
           title: title,
           description: description,
-          thumbnail: thumbnails.high.url,
+          thumbnail: thumbnails.medium.url,
           videoUrl: `${youtubeEmbedUrl}${id}`,
           viewCount: statistics.viewCount,
           duration: contentDetails.duration,
