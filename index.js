@@ -1,7 +1,7 @@
-if (!process.env.APP_ENV) {
-	process.env.APP_ENV = "development"
-}
-
+// if (!process.env.NODE_ENV) {
+// 	process.env.NODE_ENV = "development"
+// }
+const env = process.env.NODE_ENV || 'development'
 const express = require('express')
 const app = express()
 const cors = require('cors')
@@ -17,10 +17,10 @@ const sendNotification = require('./helpers/notification')
 const sendDevices = require('./helpers/devices')
 const Darshan = require('./models/darshan')
 const messages = require('./helpers/messages')
-const serviceAccount = process.env.APP_ENV === "development" ? require("./secrets/firebase-adminsdk.json") : require('/secrets/avd/anand-vrindavan-dham-firebase-adminsdk.json')
+const serviceAccount = env === "development" ? require("./secrets/firebase-adminsdk.json") : require('/secrets/avd/anand-vrindavan-dham-firebase-adminsdk.json')
 
 const config =
-  process.env.APP_ENV === "development" ? require("./secrets/config") : require("/secrets/avd/config");
+  env === "development" ? require("./secrets/config") : require("/secrets/avd/config");
 
 global.config = config;
 
