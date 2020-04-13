@@ -11,11 +11,12 @@ const os = require('os')
 // const routes = require('./routes')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
+const admin = require('firebase-admin')
+
 const sendNotification = require('./helpers/notification')
 const sendDevices = require('./helpers/devices')
 const Darshan = require('./models/darshan')
-
-const admin = require('firebase-admin')
+const messages = require('./helpers/messages')
 const serviceAccount = process.env.APP_ENV === "development" ? require("./secrets/firebase-adminsdk.json") : require('/secrets/avd/anand-vrindavan-dham-firebase-adminsdk.json')
 
 const config =
@@ -44,8 +45,8 @@ app.use(cors(corsOptions))
 
 const photoRoutes = require('./routes/photos')
 const lectureRoutes = require('./routes/lectures')
-const eventRoutes = require('./routes/events')
-const quoteRoutes = require('./routes/quotes')
+// const eventRoutes = require('./routes/events')
+// const quoteRoutes = require('./routes/quotes')
 
 mongoose.Promise = global.Promise
 
@@ -93,8 +94,8 @@ db.once('open', function () {
 // app.use('/', routes)
 app.use('/photos', photoRoutes)
 app.use('/lectures', lectureRoutes)
-app.use('/events', eventRoutes)
-app.use('/quotes', quoteRoutes)
+// app.use('/events', eventRoutes)
+// app.use('/quotes', quoteRoutes)
 
 app.post('/notification', async function (req, res) {
   const { title, subtitle, page } = req.body
@@ -106,10 +107,14 @@ app.get('/devices', async function (req, res) {
   res.json({data: await sendDevices()})
 })
 
-
-app.get('/ekadashi-list', async function (req, res) {
-
+app.post('/contact', async function (req, res) {
+  res.json({data: await messages.add(req.body.data)})
 })
+
+app.get('/messages', async function (req, res) {
+  res.json({data: await messages.get()})
+})
+
 
 app.post('/dwadashi', async function (req, res) {
   const { start, end } = req.body
@@ -127,8 +132,7 @@ app.get('/healthcheck', async function (req, res) {
     })
     return res.status(200).json({
       'responseCode': 0,
-      'responseDesc': `${os.hostname()} is running`,
-      result: dailyDarshan
+      'responseDesc': `${os.hostname()} is running`
     })
   } catch (error) {
     return res.status(500).send({
@@ -136,7 +140,6 @@ app.get('/healthcheck', async function (req, res) {
       'responseDesc': `${os.hostname()} DB is not accessible`
     })
   }
-  // res.send(`api service running on ${url}:${port}`)
 })
 
 /* catch 404 and forward to error handler */
