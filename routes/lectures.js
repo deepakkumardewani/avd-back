@@ -10,13 +10,18 @@ const upload = require('../helpers/upload')
 
 const sendNotification = require('../helpers/notification')
 
-const AUDIO_URL = 'https://avd-bapuji.sfo2.digitaloceanspaces.com/audios/'
+// const AUDIO_URL = 'https://avd-bapuji.sfo2.cdn.digitaloceanspaces.com/audios/'
 const {
   youtubeUrl,
   youtubeEmbedUrl,
   YOUTUBE_KEY,
-  PLAYLIST_ID
+  PLAYLIST_ID,
+  bucketName,
+  spacesEndpoint
 } = global.config
+
+const AUDIO_URL = `https://${bucketName}.${spacesEndpoint}/audios/`
+
 /*
   LECTURES
   */
