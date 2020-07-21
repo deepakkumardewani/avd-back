@@ -28,7 +28,8 @@ router.post('/dailyDarshan', (req, res) => {
     }, {
       $push: {
         imageUrls: {
-          url: data.location,
+          // url: data.location,
+          url: data.location.replace(/sfo2/g,"sfo2.cdn"),
           placeholder: compressedImage.location
         }
       },
@@ -68,54 +69,66 @@ router.get('/dailyDarshan', async (req, res) => {
 })
 
 router.delete('/dailyDarshan', async (req, res) => {
-  let count = 0
-  const date = new Date()
-  let dailyDarshan
-  const dateFormat = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
-  try {
-    dailyDarshan = await Darshan.findOne({
-      date: dateFormat
-    }) // get darshan for today date only
-  } catch (error) {
-    console.error(error)
-  }
-
-  const spacesEndpoint = new AWS.Endpoint(`${global.config.spacesEndpoint}/daily-darshan`)
-
-  const s3 = new AWS.S3({
-    endpoint: spacesEndpoint,
-    accessKeyId: '5D43XLAGUY6OKJB7NWNM',
-    secretAccessKey: 'k5jpTC6bCzK7XjWXl52S9iY7cATvKD+BTkgKWHHStfg'
-  })
-
-  if (dailyDarshan && dailyDarshan.imageUrls) {
-    dailyDarshan.imageUrls.forEach(url => {
-      const key = url.substr(url.lastIndexOf('/') + 1)
-      const params = {
-        Bucket: 'avd-bapuji',
-        Key: key
-      }
-      s3.deleteObject(params, function (err, data) {
-        if (err) {
-          console.log(err, err.stack)
-        } else {
-          count++
-          if (count === dailyDarshan.imageUrls.length) {
-            Darshan.deleteOne({date: dateFormat}, function (err) {
-              if (err) {
-                return res.err('err deleting', err)
-              }
-              res.status(200).json({
-                message: 'all images deleted'
-              })
-            })
-          }
-        } // deleted
+  Darshan.remove({ _id: req.query.id }, async (err, doc) => {
+    if (err) {
+      return res.status(500).json({
+        msg: 'Something wrong!',
+        err
       })
-    })
-  }
-  return res.err('err', dailyDarshan)
+    }
+    return res.status(200).json(doc)
+  })
 })
+
+// router.delete('/dailyDarshan', async (req, res) => {
+//   let count = 0
+//   const date = new Date()
+//   let dailyDarshan
+//   const dateFormat = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
+//   try {
+//     dailyDarshan = await Darshan.findOne({
+//       date: dateFormat
+//     }) // get darshan for today date only
+//   } catch (error) {
+//     console.error(error)
+//   }
+
+//   const spacesEndpoint = new AWS.Endpoint(`${global.config.spacesEndpoint}/daily-darshan`)
+
+//   const s3 = new AWS.S3({
+//     endpoint: spacesEndpoint,
+//     accessKeyId: '5D43XLAGUY6OKJB7NWNM',
+//     secretAccessKey: 'k5jpTC6bCzK7XjWXl52S9iY7cATvKD+BTkgKWHHStfg'
+//   })
+
+//   if (dailyDarshan && dailyDarshan.imageUrls) {
+//     dailyDarshan.imageUrls.forEach(url => {
+//       const key = url.substr(url.lastIndexOf('/') + 1)
+//       const params = {
+//         Bucket: 'avd-bapuji',
+//         Key: key
+//       }
+//       s3.deleteObject(params, function (err, data) {
+//         if (err) {
+//           console.log(err, err.stack)
+//         } else {
+//           count++
+//           if (count === dailyDarshan.imageUrls.length) {
+//             Darshan.deleteOne({date: dateFormat}, function (err) {
+//               if (err) {
+//                 return res.err('err deleting', err)
+//               }
+//               res.status(200).json({
+//                 message: 'all images deleted'
+//               })
+//             })
+//           }
+//         } // deleted
+//       })
+//     })
+//   }
+//   return res.err('err', dailyDarshan)
+// })
 
 /*
   ALBUMS
