@@ -105,7 +105,8 @@ router.get('/audio', async (req, res) => {
   try {
     let {
       limit,
-      page
+      page,
+      search
     } = req.query
 
     if (!limit) {
@@ -116,7 +117,16 @@ router.get('/audio', async (req, res) => {
     }
     limit = parseInt(limit)
     page = parseInt(page)
-    const audios = await Audio.paginate({}, {
+
+    const query = {}
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { subTitle: { $regex: search, $options: 'i' } }
+      ]
+    }
+
+    const audios = await Audio.paginate(query, {
       page,
       limit,
       sort: {
