@@ -47,6 +47,7 @@ var whitelist = [
   "https://anandvrindavan.com",
   "https://admin.anandvrindavan.com",
   "http://localhost:3000",
+  "http://localhost:5173",
 ];
 var corsOptions = {
   origin: function (origin, callback) {
@@ -76,10 +77,9 @@ app.use(function (req, res, next) {
   // res.setHeader('Access-Control-Allow-Origin', 'https://anandvrindvan.com')
   // res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
   res.setHeader("Access-Control-Allow-Methods", "POST, DELETE, GET, PUT");
-  res.header(
+  res.setHeader(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, albumtitle",
-    "audiotitle",
+    "Origin, X-Requested-With, Content-Type, Accept, albumtitle, audiotitle"
   );
   res.setHeader("Access-Control-Allow-Credentials", true);
   next();
@@ -90,7 +90,7 @@ app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
     extended: false,
-  }),
+  })
 );
 app.use(cookieParser());
 
@@ -160,11 +160,21 @@ app.get("/healthcheck", async function (req, res) {
   }
 });
 
-/* catch 404 and forward to error handler */
-app.use(function (req, res, next) {
-  var err = new Error("Not Found");
-  err.status = 404;
-  next(err);
+app.use(function (req, res) {
+  res.status(404).json({ msg: "Not Found" });
+});
+
+app.use(function (err, req, res, next) {
+  if (res.headersSent) {
+    return next(err);
+  }
+  const status = err.status || err.statusCode || 500;
+  if (status >= 500) {
+    console.error(err);
+  }
+  res.status(status).json({
+    msg: status === 404 ? "Not Found" : "Something went wrong!",
+  });
 });
 
 app.listen(port, () => {
