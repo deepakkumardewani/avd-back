@@ -1,4 +1,5 @@
 const express = require('express')
+const path = require('path')
 const router = express.Router()
 const axios = require('axios')
 
@@ -7,6 +8,8 @@ const Audio = require('../models/audio')
 // const config = require('/Users/Shared/Relocated\ Items/Security/secrets/avd/config')
 // const config = require('/secrets/avd/config')
 const upload = require('../helpers/upload')
+const parseDailyAudioFilename = require('../helpers/parseDailyAudioFilename')
+const { logUploadError, sendUploadError } = require('../helpers/uploadError')
 
 const sendNotification = require('../helpers/notification')
 
@@ -25,40 +28,65 @@ const AUDIO_URL = `https://${bucketName}.${spacesEndpoint}/audios/`
 /*
   LECTURES
   */
-router.post('/audio/daily', (req, res) => {
-  let {
-    audiotitle
-  } = req.headers
+const INVALID_AUDIO_NAME = 'Filename must look like "2019.12.01 File name.mp3" or "2019-12-01 File name.mp3"'
 
-  const [ date, month, year ] = audiotitle.split('.')
-  upload(req, res, `audios/${year}/${month}`, async function (error, result) {
+router.post('/audio/daily', (req, res) => {
+  upload(req, res, function (request, file) {
+    const filename = path.basename(file.originalname)
+    const parsed = parseDailyAudioFilename(filename)
+    if (!parsed) {
+      const error = new Error(INVALID_AUDIO_NAME)
+      error.status = 400
+      error.filename = filename
+      throw error
+    }
+    request.dailyAudio = parsed
+    return `audios/${parsed.year}/${parsed.month}/${filename}`
+  }, async function (error, result) {
     if (error) {
-      return res.status(409).json({
-        msg: 'Error Uploading',
+      const isBadFilename = error.status === 400 && error.message === INVALID_AUDIO_NAME
+      const isNoFile = error.message === 'No file uploaded'
+      const step = isBadFilename ? 'validate' : 'storage'
+      const status = isBadFilename || isNoFile ? 400 : 500
+      const filename = error.filename || (req.file && req.file.originalname)
+      logUploadError({
+        route: 'POST /lectures/audio/daily',
+        step,
+        filename,
         error
       })
+      const displayMsg = isBadFilename
+        ? INVALID_AUDIO_NAME
+        : isNoFile
+          ? 'No file was uploaded. Choose an audio file and try again.'
+          : 'Could not upload the satsang audio.'
+      return sendUploadError(res, status, displayMsg, isBadFilename ? INVALID_AUDIO_NAME : error)
     }
-    const {
-      originalname
-    } = result
 
-    // e.g. originalname: '2019.01.01 File name.mp3'
-    const title = originalname.substr(0, originalname.indexOf(' ')) // set date as title
-    const subTitle = originalname.substr(originalname.indexOf(' ') + 1).split('.')[0] // set name as subtitle and remove '.mp3'
-
-    // DO returns relative path of location of the uploaded file if the file is large
-    // Hence, creating a new complete URL for the uploaded file
-    // and saving in the DB
-    if (!result.location.startsWith('https://')) {
-      const fileName = result.originalname.replace(/ /g, '%20')
-      result.location = `${AUDIO_URL}${year}/${month}/${fileName}`
+    const parsed = req.dailyAudio || parseDailyAudioFilename(result.originalname)
+    if (!parsed) {
+      logUploadError({
+        route: 'POST /lectures/audio/daily',
+        step: 'validate',
+        filename: result && result.originalname,
+        error: new Error(INVALID_AUDIO_NAME)
+      })
+      return sendUploadError(res, 400, INVALID_AUDIO_NAME, INVALID_AUDIO_NAME)
     }
+
+    // DO returns a relative path when the file is large.
+    if (!result.location || !result.location.startsWith('https://')) {
+      const fileName = path.basename(result.originalname).replace(/ /g, '%20')
+      result.location = `${AUDIO_URL}${parsed.year}/${parsed.month}/${fileName}`
+    }
+
     try {
       const audio = new Audio({
-        title,
-        subTitle,
+        title: parsed.title,
+        subTitle: parsed.subTitle,
+        date: parsed.date,
         url: result.location,
-        fileTitle: `${title} ${subTitle}`.replace(/-|\s/g, '_')
+        fileTitle: `${parsed.title} ${parsed.subTitle}`.replace(/-|\s/g, '_')
       })
       const doc = await audio.save()
 
@@ -67,20 +95,32 @@ router.post('/audio/daily', (req, res) => {
       }
 
       let notifMsg = `Today's audio satsang is now available`
-      if (subTitle.substring(0, 2) === 'BM') {
+      if (parsed.subTitle.substring(0, 2) === 'BM') {
         notifMsg = `Today's Brhama Muhrat audio satsang is now available`
       }
-      sendNotification('Hare Krishna', notifMsg, data)
-      // sendNotification('Hare Krishna', `Today's audio satsang is now available`, data)
+      try {
+        await sendNotification('Hare Krishna', notifMsg, data)
+      } catch (notifyError) {
+        logUploadError({
+          route: 'POST /lectures/audio/daily',
+          step: 'notification',
+          filename: path.basename(result.originalname),
+          error: notifyError
+        })
+      }
       return res.status(200).json({
         msg: 'Successfully uploaded file!',
         data: doc
       })
-    } catch (error) {
-      return res.status(500).json({
-        msg: 'Something went wrong!',
-        error
+    } catch (saveError) {
+      logUploadError({
+        route: 'POST /lectures/audio/daily',
+        step: 'database',
+        filename: path.basename(result.originalname),
+        title: parsed.title,
+        error: saveError
       })
+      return sendUploadError(res, 500, 'The audio uploaded, but saving it failed.', saveError)
     }
   })
 })
@@ -91,7 +131,7 @@ router.get('/audio/daily', async (_, res) => {
     //   title: -1
     // })
     const audio = await Audio.find().sort({createdAt: -1}).limit(1)
-    return res.status(200).json(audio[0])
+    return res.status(200).json(audio[0] || null)
   } catch (error) {
     return res.status(409).json({
       msg: 'Something went wrong!',
