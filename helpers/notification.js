@@ -1,5 +1,7 @@
 const admin = require('firebase-admin')
 
+const CHUNK_SIZE = 1000
+
 const sendNotification = async (title, body, data) => {
   const payload = {
     data,
@@ -9,36 +11,30 @@ const sendNotification = async (title, body, data) => {
     }
   }
 
-  // ref to the device collection for the user
-  const db = admin.firestore()
-  const devicesRef = db.collection('devices')
+  const devices = await admin.firestore().collection('devices').get()
+  const docs = devices.docs.slice()
+  const chunks = []
 
-  // get the user's tokens and send notifications
-  const devices = await devicesRef.get()
-  let tokens = []
-  const devicesArray = []
-
-  while (devices.docs.length > 0) {
-    const chunk = devices.docs.splice(0, 1000)
-    devicesArray.push(chunk)
+  while (docs.length > 0) {
+    chunks.push(docs.splice(0, CHUNK_SIZE))
   }
 
-  devicesArray.forEach(result => {
-    tokens = []
-    result.forEach(data => {
-      const token = data.data().token
-      tokens.push(token)
-    })
-    admin.messaging().sendToDevice(tokens, payload)
-  })
+  const results = []
+  for (const chunk of chunks) {
+    const tokens = chunk
+      .map(doc => doc.data().token)
+      .filter(token => typeof token === 'string' && token.length > 0)
+    if (!tokens.length) continue
 
-  // send a notification to each device token
-  // devices.forEach(result => {
-  //   const token = result.data().token
-  //   tokens.push(token)
-  // })
+    try {
+      const response = await admin.messaging().sendToDevice(tokens, payload)
+      results.push(response)
+    } catch (err) {
+      console.error('Failed to send notification chunk', err)
+    }
+  }
 
-  // return admin.messaging().sendToDevice(tokens, payload)
+  return results
 }
 
 module.exports = sendNotification
