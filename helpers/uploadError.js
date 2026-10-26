@@ -1,3 +1,5 @@
+const logger = require('./logger')
+
 function errorMessage (error) {
   if (!error) return 'Unknown error'
   if (typeof error === 'string') return error
@@ -6,20 +8,16 @@ function errorMessage (error) {
 
 function logUploadError (details) {
   const error = details.error
-  const entry = {
+  logger.error('upload failed', {
     route: details.route,
     step: details.step,
-    message: errorMessage(error)
-  }
-  if (details.filename) entry.filename = details.filename
-  if (details.folder) entry.folder = details.folder
-  if (details.title) entry.title = details.title
-  if (details.album) entry.album = details.album
-  if (error && (error.code || error.statusCode || error.status)) {
-    entry.code = error.code || error.statusCode || error.status
-  }
-  if (error && error.stack) entry.stack = error.stack
-  console.error('[upload]', entry)
+    message: errorMessage(error),
+    filename: details.filename,
+    folder: details.folder,
+    title: details.title,
+    album: details.album,
+    error: logger.serializeError(error)
+  })
 }
 
 function sendUploadError (res, status, msg, error) {

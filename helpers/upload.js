@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk')
 const multer = require('multer')
 const multerS3 = require('multer-s3')
+const logger = require('./logger')
 
 function uploadFile (req, res, folderPath, cb) {
   const resolveKey = typeof folderPath === 'function' ? folderPath : null
@@ -41,7 +42,7 @@ function uploadFile (req, res, folderPath, cb) {
 
   upload(req, res, function (error) {
     if (error) {
-      console.error(error)
+      logger.error('multer upload failed', { error: logger.serializeError(error) })
       cb(error)
       return
     }

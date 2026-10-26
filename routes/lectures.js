@@ -31,7 +31,8 @@ function buildCanonicalBasename (parsed, originalname) {
   return `${parsed.title} ${parsed.subTitle}${ext}`.replace(/[/\\]/g, '').trim()
 }
 
-const sendNotification = require('../helpers/notification')
+const { dispatchNotification } = require('../helpers/dispatchNotification')
+const logger = require('../helpers/logger')
 
 // const AUDIO_URL = 'https://avd-bapuji.sfo2.cdn.digitaloceanspaces.com/audios/'
 const {
@@ -107,6 +108,14 @@ router.post('/audio/daily', (req, res) => {
       })
       const doc = await audio.save()
 
+      logger.info('daily audio saved', {
+        route: 'POST /lectures/audio/daily',
+        audioId: doc._id && String(doc._id),
+        title: parsed.title,
+        subTitle: parsed.subTitle,
+        filename: path.basename(result.originalname)
+      })
+
       const data = {
         page: '/tabs/tab1'
       }
@@ -115,16 +124,12 @@ router.post('/audio/daily', (req, res) => {
       if (parsed.subTitle.substring(0, 2) === 'BM') {
         notifMsg = `Today's Brhama Muhrat audio satsang is now available`
       }
-      try {
-        await sendNotification('Hare Krishna', notifMsg, data)
-      } catch (notifyError) {
-        logUploadError({
-          route: 'POST /lectures/audio/daily',
-          step: 'notification',
-          filename: path.basename(result.originalname),
-          error: notifyError
-        })
-      }
+
+      dispatchNotification('Hare Krishna', notifMsg, data, {
+        route: 'POST /lectures/audio/daily',
+        audioId: doc._id && String(doc._id)
+      })
+
       return res.status(200).json({
         msg: 'Successfully uploaded file!',
         data: doc
