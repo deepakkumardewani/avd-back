@@ -8,8 +8,28 @@ const Audio = require('../models/audio')
 // const config = require('/Users/Shared/Relocated\ Items/Security/secrets/avd/config')
 // const config = require('/secrets/avd/config')
 const upload = require('../helpers/upload')
-const parseDailyAudioFilename = require('../helpers/parseDailyAudioFilename')
+const parseDailyAudioForm = require('../helpers/parseDailyAudioForm')
 const { logUploadError, sendUploadError } = require('../helpers/uploadError')
+
+const DAILY_AUDIO_VALIDATION_MESSAGES = new Set([
+  'Date is required',
+  'Invalid date',
+  'Date is too far in the past',
+  'Date cannot be in the future',
+  'Title is required',
+  'Title cannot contain line breaks',
+  'Title must be at least 5 characters',
+  'Title must be at most 100 characters'
+])
+
+function isValidationError (error) {
+  return error.status === 400 && DAILY_AUDIO_VALIDATION_MESSAGES.has(error.message)
+}
+
+function buildCanonicalBasename (parsed, originalname) {
+  const ext = path.extname(originalname || '')
+  return `${parsed.title} ${parsed.subTitle}${ext}`.replace(/[/\\]/g, '').trim()
+}
 
 const sendNotification = require('../helpers/notification')
 
@@ -28,26 +48,18 @@ const AUDIO_URL = `https://${bucketName}.${spacesEndpoint}/audios/`
 /*
   LECTURES
   */
-const INVALID_AUDIO_NAME = 'Filename must look like "2019.12.01 File name.mp3" or "2019-12-01 File name.mp3"'
-
 router.post('/audio/daily', (req, res) => {
   upload(req, res, function (request, file) {
-    const filename = path.basename(file.originalname)
-    const parsed = parseDailyAudioFilename(filename)
-    if (!parsed) {
-      const error = new Error(INVALID_AUDIO_NAME)
-      error.status = 400
-      error.filename = filename
-      throw error
-    }
+    const parsed = parseDailyAudioForm(request.body.date, request.body.subTitle)
     request.dailyAudio = parsed
-    return `audios/${parsed.year}/${parsed.month}/${filename}`
+    const canonicalBasename = buildCanonicalBasename(parsed, file.originalname)
+    return `audios/${parsed.year}/${parsed.month}/${canonicalBasename}`
   }, async function (error, result) {
     if (error) {
-      const isBadFilename = error.status === 400 && error.message === INVALID_AUDIO_NAME
+      const validationFailed = isValidationError(error)
       const isNoFile = error.message === 'No file uploaded'
-      const step = isBadFilename ? 'validate' : 'storage'
-      const status = isBadFilename || isNoFile ? 400 : 500
+      const step = validationFailed ? 'validate' : 'storage'
+      const status = validationFailed || isNoFile ? 400 : 500
       const filename = error.filename || (req.file && req.file.originalname)
       logUploadError({
         route: 'POST /lectures/audio/daily',
@@ -55,28 +67,33 @@ router.post('/audio/daily', (req, res) => {
         filename,
         error
       })
-      const displayMsg = isBadFilename
-        ? INVALID_AUDIO_NAME
+      const displayMsg = validationFailed
+        ? error.message
         : isNoFile
           ? 'No file was uploaded. Choose an audio file and try again.'
           : 'Could not upload the satsang audio.'
-      return sendUploadError(res, status, displayMsg, isBadFilename ? INVALID_AUDIO_NAME : error)
+      return sendUploadError(res, status, displayMsg, validationFailed ? error.message : error)
     }
 
-    const parsed = req.dailyAudio || parseDailyAudioFilename(result.originalname)
+    const parsed = req.dailyAudio
     if (!parsed) {
+      const missingFieldsError = new Error('Date is required')
+      missingFieldsError.status = 400
       logUploadError({
         route: 'POST /lectures/audio/daily',
         step: 'validate',
         filename: result && result.originalname,
-        error: new Error(INVALID_AUDIO_NAME)
+        error: missingFieldsError
       })
-      return sendUploadError(res, 400, INVALID_AUDIO_NAME, INVALID_AUDIO_NAME)
+      return sendUploadError(res, 400, missingFieldsError.message, missingFieldsError.message)
     }
 
     // DO returns a relative path when the file is large.
     if (!result.location || !result.location.startsWith('https://')) {
-      const fileName = path.basename(result.originalname).replace(/ /g, '%20')
+      const uploadedBasename = result.key
+        ? path.basename(result.key)
+        : buildCanonicalBasename(parsed, result.originalname)
+      const fileName = uploadedBasename.replace(/ /g, '%20')
       result.location = `${AUDIO_URL}${parsed.year}/${parsed.month}/${fileName}`
     }
 

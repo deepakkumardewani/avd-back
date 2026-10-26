@@ -69,3 +69,5 @@ function parseDailyAudioFilename (originalname) {
 }
 
 module.exports = parseDailyAudioFilename
+module.exports.parseDatePrefix = parseDatePrefix
+module.exports.isRealUtcDate = isRealUtcDate
